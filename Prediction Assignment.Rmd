@@ -1,0 +1,84 @@
+---
+title: "Predictive Model to Determine the Fitness Exercise Correctness"
+author: "R Koder"
+date: "March 25, 2016"
+output: html_document
+---
+The objective of the project is to to predict the manner which the exercise is done
+Data for the project is from the link: http://groupware.les.inf.puc-rio.br/har.
+
+## Data Retrieval
+
+Retrieve the Training and Test data CSVs and download to the local directory.
+
+```{r}
+
+if (!file.exists("./pml-training.csv")) {
+    download.file("http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", 
+        destfile = "./pml-training.csv")
+}
+if (!file.exists("./pml-testing.csv")) {
+    download.file("http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", 
+        destfile = "./pml-testing.csv")
+}
+
+```
+
+## Exploration
+
+
+The training set consists of 19622 observations of 160 variables.
+
+```{r}
+
+exp_training <- read.csv("./pml-training.csv")
+
+dim(exp_training)
+```
+
+## Data Pre Processing
+
+Some columns of the raw data set have empty strings and those columns have to be deleted. The columns X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window are not related to outcome and hence can be deleted.
+
+```{r}
+library(caret)
+
+set.seed(12345)
+trainingdata <- read.csv("pml-training.csv", stringsAsFactors=FALSE)
+trainingdata$classe <- as.factor(trainingdata$classe)
+trainingdata <- trainingdata[,-nearZeroVar(trainingdata)]
+trainingdata <- trainingdata[,-c(1,2,3,4,5,6,7)]
+
+```
+
+There are many NA values in the data set, so, KnnImpute method to impute those values.Features can be standardized and PCA can be used to reduce features.
+
+```{r}
+iTraining <- createDataPartition(y=trainingdata$classe, p=0.75, list=FALSE)
+trainingdata <- trainingdata[iTraining,]
+testingset <- trainingdata[-iTraining,]
+
+preprocessObject <- preProcess(trainingdata[,-length(trainingdata)],method=c("center", "scale", "knnImpute", "pca"), thresh=0.9)
+cleaned_data <- predict(preprocessObject,trainingdata[,-length(trainingdata)])
+```
+
+## Prediction
+
+Once the data set is cleansed, Knn method  can be used to build model.Testing data can be used to evaluate the performance of the model. 
+The accuracy is 0.973. 
+
+```{r}
+model_ft <- train(trainingdata$classe ~.,data=cleaned_data, method="knn")
+test <- predict(preprocessObject, testingset[,-length(testingset)])
+confusionMatrix(testingset$classe, predict(model_ft,test))
+```
+
+
+Result as predicted from test data,
+```{r}
+testingset <- read.csv("pml-testing.csv", stringsAsFactors=FALSE)
+testingset <- testingset[,names(testingset) %in% names(trainingdata)]
+
+testdat <- predict(preprocessObject, testingset)
+predict_result <- predict(model_ft, testdat)
+```
