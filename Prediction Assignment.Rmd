@@ -1,13 +1,14 @@
 ---
-title: "Predictive Model to Determine the Fitness Exercise Correctness"
-author: "R Koder"
-date: "March 25, 2016"
-output: html_document
+Project Title: "Predictive Model to Determine the Fitness Exercise Manner"
+Author: "R Koder"
+Date: "March 25, 2016"
+Output Document Type: HTML
 ---
+
 The objective of the project is to to predict the manner which the exercise is done
 Data for the project is from the link: http://groupware.les.inf.puc-rio.br/har.
 
-## Data Retrieval
+## 1. Data Retrieval
 
 Retrieve the Training and Test data CSVs and download to the local directory.
 
@@ -24,7 +25,7 @@ if (!file.exists("./pml-testing.csv")) {
 
 ```
 
-## Exploration
+## 2. Exploration
 
 
 The training set consists of 19622 observations of 160 variables.
@@ -36,7 +37,7 @@ exp_training <- read.csv("./pml-training.csv")
 dim(exp_training)
 ```
 
-## Data Pre Processing
+## 3. Data Pre Processing
 
 Some columns of the raw data set have empty strings and those columns have to be deleted. The columns X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window are not related to outcome and hence can be deleted.
 
@@ -62,7 +63,7 @@ preprocessObject <- preProcess(trainingdata[,-length(trainingdata)],method=c("ce
 cleaned_data <- predict(preprocessObject,trainingdata[,-length(trainingdata)])
 ```
 
-## Prediction
+## 4. Prediction
 
 Once the data set is cleansed, Knn method  can be used to build model.Testing data can be used to evaluate the performance of the model. 
 The accuracy is 0.973. 
